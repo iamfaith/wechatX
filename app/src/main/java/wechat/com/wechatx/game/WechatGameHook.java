@@ -107,6 +107,9 @@ public class WechatGameHook {
                             if (!TextUtils.isEmpty(content)) {
                                 //modify
                                 content = content.replace("this.CurrentBulletLeftNum-1", "this.CurrentBulletLeftNum");
+                                //无敌
+                                content = content.replace("this.Hp-e", "this.Hp");
+
                                 if (!TextUtils.isEmpty(content)) {
                                     methodHookParam.setResult(content);
                                 }
