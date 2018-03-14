@@ -1,0 +1,84 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 26
+
+
+
+    defaultConfig {
+        applicationId "wechat.com.wechatgame"
+        minSdkVersion 19
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+        }
+
+
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    provided 'de.robv.android.xposed:api:82'
+    //如果需要引入文档，方便查看的话
+    provided 'de.robv.android.xposed:api:82:sources'
+
+    implementation 'com.android.support:appcompat-v7:26.1.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+}
+
+
+def DEX_DIR = "/sdcard/"
+
+
+task pushDex << {
+
+    def cmd = "${getAdbPath()}adb push ${project.getBuildDir().getPath()}/intermediates/transforms/dexBuilder/debug/15/wechat/com/wechatgame/WechatGame.dex $DEX_DIR"
+    cmd.execute()
+
+    println "cmd is $cmd"
+    println "push success"
+}
+
+pushDex {}.dependsOn "transformClassesWithDexBuilderForDebug"
+
+def getAdbPath() {
+    def rootDir = project.rootDir
+    def localProperties = new File(rootDir, "local.properties")
+    def sdkDir = null;
+    if (localProperties.exists()) {
+        Properties properties = new Properties()
+        localProperties.withInputStream { instr ->
+            properties.load(instr)
+        }
+        sdkDir = properties.getProperty('sdk.dir')
+    }
+    if (sdkDir == null || !(new File(sdkDir).exists())) {
+        sdkDir = android.getSdkDirectory().getAbsolutePath()
+    }
+    if (sdkDir == null || !(new File(sdkDir).exists())) {
+        sdkDir = android.plugin.getSdkFolder().getAbsolutePath()
+    }
+    def adbDir = sdkDir + File.separator + "platform-tools" + File.separator
+    if (new File(adbDir).exists()) {
+        return adbDir;
+    }
+    return ""
+}
