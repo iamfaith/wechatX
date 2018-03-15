@@ -192,7 +192,7 @@ public class WechatGameHook {
                             if (!TextUtils.isEmpty(content)) {
                                 //modify
                                 content = b(content);
-                                content = content.replace("t?1===this.double", "if (Math.random() < 0.6 || this.double > 12 && t === 1) t=0; else t=1;t?1===this.double");
+                                content = content.replace("t?1===this.double", "if (Math.random() < 0.6 && t === 0) t=1; t?1===this.double");
                                 if (!TextUtils.isEmpty(content)) {
                                     methodHookParam.setResult(content);
                                 }

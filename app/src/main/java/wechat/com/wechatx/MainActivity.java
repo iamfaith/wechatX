@@ -8,9 +8,11 @@ import java.io.File;
 import java.lang.reflect.Method;
 
 import dalvik.system.PathClassLoader;
+import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import wechat.com.wechatx.game.WechatGameHook;
+import wechat.com.wechatx.reverse.ViewClickedHooker;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -38,8 +40,8 @@ public class MainActivity extends AppCompatActivity {
         try {
 
             final PathClassLoader pathClassLoader = new PathClassLoader(filePath, ClassLoader.getSystemClassLoader());
-            final Class<?> aClass = Class.forName( WechatGameHook.class.getCanonicalName(), true, pathClassLoader);
-            final Method aClassMethod = aClass.getMethod("handleLoadPackage4release");
+            final Class<?> aClass = Class.forName(ViewClickedHooker.class.getCanonicalName(), true, pathClassLoader);
+            final Method aClassMethod = aClass.getMethod("handlerViewClick");
             aClassMethod.invoke(aClass.newInstance());
         } catch (Exception e) {
             Log.e("MainActivity", "", e);
