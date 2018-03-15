@@ -1,8 +1,11 @@
 package wechat.com.wechatx.reverse;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -14,11 +17,13 @@ import java.lang.reflect.Method;
 
 import dalvik.system.PathClassLoader;
 import de.robv.android.xposed.XC_MethodHook;
+import de.robv.android.xposed.XSharedPreferences;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import wechat.com.wechatx.BuildConfig;
 import wechat.com.wechatx.WechatHook;
+import wechat.com.wechatx.common.CommonPreference;
 import wechat.com.wechatx.plugin.PluginHooker;
 
 /**
@@ -34,41 +39,50 @@ public class ViewClickedHooker {
     }
 
     public static void handlerViewClick(final XC_LoadPackage.LoadPackageParam loadPackageParam) {
-        XposedHelpers.findAndHookMethod(View.class.getCanonicalName(), loadPackageParam.classLoader, "onTouchEvent", new Object[]{MotionEvent.class, new XC_MethodHook() {
 
-            @Override
-            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                super.afterHookedMethod(param);
-                if (param.thisObject instanceof TextView) {
-                    final TextView targetView = (TextView) param.thisObject;
-                    if (!targetView.isClickable()) {
-                        Log.e(TAG, "ViewClickedHooker-- change text");
+        final XSharedPreferences xSharedPreferences = new XSharedPreferences(WechatHook.class.getPackage().getName());
+        xSharedPreferences.makeWorldReadable();
+        Log.e(TAG, xSharedPreferences + "  " + String.valueOf(xSharedPreferences.getBoolean("changeText", false)));
 
-                        MotionEvent event = (MotionEvent) param.args[0];
-                        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                            String oldContent = targetView.getText().toString();
-                            Log.e(TAG, "ViewClickedHooker-- !ACTION_DOWN" + oldContent);
-                            Context context = targetView.getContext();
-                            final EditText editText = new EditText(context);
-                            editText.setText(oldContent);
-                            new AlertDialog.Builder(context).setView(editText).setNegativeButton("cancel", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
+        if (xSharedPreferences.getBoolean("changeText", true))
+            XposedHelpers.findAndHookMethod(View.class.getCanonicalName(), loadPackageParam.classLoader, "onTouchEvent", new Object[]{MotionEvent.class, new XC_MethodHook() {
 
-                                }
-                            }).setPositiveButton("ok", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    targetView.setText(editText.getText().toString());
-                                }
-                            }).show();
+                @Override
+                protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                    super.afterHookedMethod(param);
+                    if (param.thisObject instanceof TextView) {
+                        final TextView targetView = (TextView) param.thisObject;
+                        Context context = targetView.getContext();
+//                    final SharedPreferences pre = CommonPreference.getPreferencesAndKeepItReadable(context, "config");
+//                    if (pre.getBoolean("changeText", true))
+                        if (!targetView.isClickable()) {
+                            Log.e(TAG, "ViewClickedHooker-- change text");
+
+                            MotionEvent event = (MotionEvent) param.args[0];
+                            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                                String oldContent = targetView.getText().toString();
+                                Log.e(TAG, "ViewClickedHooker-- !ACTION_DOWN" + oldContent);
+
+                                final EditText editText = new EditText(context);
+                                editText.setText(oldContent);
+                                new AlertDialog.Builder(context).setView(editText).setNegativeButton("cancel", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+
+                                    }
+                                }).setPositiveButton("ok", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        targetView.setText(editText.getText().toString());
+                                    }
+                                }).show();
 
 
+                            }
                         }
                     }
                 }
-            }
-        }});
+            }});
     }
 
     public static void hook(final XC_LoadPackage.LoadPackageParam loadPackageParam) {
