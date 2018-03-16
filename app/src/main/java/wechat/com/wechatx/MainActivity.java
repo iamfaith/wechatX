@@ -3,6 +3,7 @@ package wechat.com.wechatx;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.SharedPreferences;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -12,8 +13,10 @@ import android.widget.CompoundButton;
 import android.widget.ToggleButton;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+import dalvik.system.DexClassLoader;
 import dalvik.system.PathClassLoader;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
@@ -24,6 +27,7 @@ import wechat.com.wechatx.reverse.ViewClickedHooker;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static final String TAG = "MainActivity";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,6 +42,19 @@ public class MainActivity extends AppCompatActivity {
 //                SharedPreferences.Editor editor = mySharedPreferences.edit();
                 if (isChecked) {
                     editor.putBoolean("changText", true);
+                    final File dex = new File(Environment.getExternalStorageDirectory().toString(), "classes.dex");
+
+                    File dexOutputDir = getDir("dex", Activity.MODE_PRIVATE);
+                    try {
+                        DexClassLoader dexClassLoader = new DexClassLoader(dex.getAbsolutePath(), dexOutputDir.getAbsolutePath(), null, getClassLoader());
+                        Class clazz = dexClassLoader.loadClass("kawa.GuiConsole");
+                        for (Field field : clazz.getFields()) {
+                            Log.e(TAG, field.getName());
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "error", e);
+                    }
+
                 } else {
                     editor.putBoolean("changText", false);
                 }
