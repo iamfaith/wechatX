@@ -42,12 +42,12 @@ public class MainActivity extends AppCompatActivity {
 //                SharedPreferences.Editor editor = mySharedPreferences.edit();
                 if (isChecked) {
                     editor.putBoolean("changText", true);
-                    final File dex = new File(Environment.getExternalStorageDirectory().toString(), "classes.dex");
+                    final File dex = new File(Environment.getExternalStorageDirectory().toString(), "WechatGame.dex");
 
                     File dexOutputDir = getDir("dex", Activity.MODE_PRIVATE);
                     try {
                         DexClassLoader dexClassLoader = new DexClassLoader(dex.getAbsolutePath(), dexOutputDir.getAbsolutePath(), null, getClassLoader());
-                        Class clazz = dexClassLoader.loadClass("kawa.GuiConsole");
+                        Class clazz = dexClassLoader.loadClass("wechat.com.wechatgame.WechatGame");
                         for (Field field : clazz.getFields()) {
                             Log.e(TAG, field.getName());
                         }
