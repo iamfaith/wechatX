@@ -17,6 +17,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import dalvik.system.DexClassLoader;
+import dalvik.system.DexFile;
 import dalvik.system.PathClassLoader;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
@@ -42,25 +43,29 @@ public class MainActivity extends AppCompatActivity {
 //                SharedPreferences.Editor editor = mySharedPreferences.edit();
                 if (isChecked) {
                     editor.putBoolean("changText", true);
-                    final File dex = new File(Environment.getExternalStorageDirectory().toString(), "WechatGame.dex");
-
-                    File dexOutputDir = getDir("dex", Activity.MODE_PRIVATE);
-                    try {
-                        DexClassLoader dexClassLoader = new DexClassLoader(dex.getAbsolutePath(), dexOutputDir.getAbsolutePath(), null, getClassLoader());
-                        Class clazz = dexClassLoader.loadClass("wechat.com.wechatgame.WechatGame");
-                        for (Field field : clazz.getFields()) {
-                            Log.e(TAG, field.getName());
-                        }
-                    } catch (Exception e) {
-                        Log.e(TAG, "error", e);
-                    }
-
                 } else {
                     editor.putBoolean("changText", false);
                 }
                 editor.commit();
             }
         });
+
+
+        final File dex = new File(Environment.getExternalStorageDirectory().toString(), "classes.apk");
+        if (dex.exists()) {
+            File dexOutputDir = getDir("dex", Activity.MODE_PRIVATE);
+            try {
+                DexClassLoader dexClassLoader = new DexClassLoader(dex.getAbsolutePath(), dexOutputDir.getAbsolutePath(), null, getApplicationContext().getClassLoader());
+                Class clazz = dexClassLoader.loadClass("wechat.com.wechatgame.WechatGame");
+                for (Field field : clazz.getFields()) {
+                    Log.e(TAG, field.getName());
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "error", e);
+            }
+        }
+
+
 
 //        final String packageName = MainActivity.class.getPackage().getName();
 //        String filePath = String.format("/data/app/%s-%s.apk", packageName, 1);
